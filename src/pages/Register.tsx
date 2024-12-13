@@ -37,13 +37,40 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Basic validation
+    if (!formData.email || !formData.password || !formData.name || !formData.role || !formData.gender || !formData.birthDate) {
+      toast({
+        title: "Ошибка",
+        description: "Пожалуйста, заполните все обязательные поля",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate department for User role
+    if (formData.role === "User" && !formData.department) {
+      toast({
+        title: "Ошибка",
+        description: "Пользователи должны указать отдел",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
+      console.log("Submitting registration form:", formData);
       await register(formData);
+      toast({
+        title: "Успех",
+        description: "Регистрация успешно завершена",
+      });
       navigate("/");
     } catch (error) {
+      console.error("Registration error:", error);
       toast({
-        title: "Error",
-        description: "Registration failed",
+        title: "Ошибка",
+        description: error instanceof Error ? error.message : "Ошибка при регистрации",
         variant: "destructive",
       });
     }

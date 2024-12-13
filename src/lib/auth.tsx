@@ -10,47 +10,50 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+// Temporary mock storage
+const users: User[] = [];
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   const login = async (email: string, password: string) => {
-    try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      
-      if (!response.ok) throw new Error("Login failed");
-      
-      const userData = await response.json();
-      setUser(userData);
-    } catch (error) {
-      console.error("Login error:", error);
-      throw error;
+    console.log("Attempting login with:", { email, password });
+    
+    const foundUser = users.find(u => u.email === email);
+    if (!foundUser) {
+      throw new Error("User not found");
     }
+    
+    setUser(foundUser);
+    console.log("Login successful:", foundUser);
   };
 
   const register = async (userData: Omit<User, "id"> & { password: string }) => {
-    try {
-      const response = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData),
-      });
-      
-      if (!response.ok) throw new Error("Registration failed");
-      
-      const newUser = await response.json();
-      setUser(newUser);
-    } catch (error) {
-      console.error("Registration error:", error);
-      throw error;
+    console.log("Attempting registration with:", userData);
+    
+    // Check if user already exists
+    if (users.find(u => u.email === userData.email)) {
+      throw new Error("User already exists");
     }
+
+    // Create new user with generated ID
+    const newUser: User = {
+      ...userData,
+      id: Math.random().toString(36).substr(2, 9)
+    };
+
+    // Add to mock storage
+    users.push(newUser);
+    
+    // Auto-login after registration
+    setUser(newUser);
+    
+    console.log("Registration successful:", newUser);
   };
 
   const logout = () => {
     setUser(null);
+    console.log("User logged out");
   };
 
   return (
